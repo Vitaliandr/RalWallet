@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>RalWallet</title>
+  <link rel="icon" href="logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- вход / регистрация -->
+<section id="auth" class="auth" hidden>
+  <div class="auth-card">
+    <div class="brand brand-big">
+      <img src="logo.svg" alt="" width="40" height="40">
+      <span>RalWallet</span>
+    </div>
+    <p class="muted auth-sub">Счета, переводы и история операций</p>
+
+    <div class="tabs">
+      <button class="tab active" data-mode="login">Вход</button>
+      <button class="tab" data-mode="register">Регистрация</button>
+    </div>
+
+    <form id="auth-form" novalidate>
+      <div class="register-only" hidden>
+        <div class="row2">
+          <label>Фамилия
+            <input name="last_name" autocomplete="family-name">
+          </label>
+          <label>Имя
+            <input name="first_name" autocomplete="given-name">
+          </label>
+        </div>
+        <label>Отчество
+          <input name="middle_name" autocomplete="additional-name">
+        </label>
+        <div class="row2">
+          <label>Дата рождения
+            <input name="birth_date" type="date" max="">
+          </label>
+          <label>Телефон
+            <input name="phone" type="tel" autocomplete="tel" placeholder="+7 999 123-45-67">
+          </label>
+        </div>
+      </div>
+      <label>Email
+        <input type="email" name="email" autocomplete="email" required>
+      </label>
+      <label>Пароль
+        <input type="password" name="password" autocomplete="current-password" required>
+        <small class="muted hint-register" hidden>Минимум 8 символов</small>
+      </label>
+      <p class="form-error" id="auth-error"></p>
+      <button type="submit" class="btn btn-primary btn-wide" id="auth-submit">Войти</button>
+    </form>
+  </div>
+</section>
+
+<!-- основной экран -->
+<section id="main" hidden>
+  <header class="topbar">
+    <div class="brand">
+      <img src="logo.svg" alt="" width="28" height="28">
+      <span>RalWallet</span>
+    </div>
+    <div class="topbar-right">
+      <button class="user-btn" id="open-profile" title="Профиль"></button>
+      <button class="btn btn-ghost" id="logout">Выйти</button>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="accounts">
+      <div class="total-card" id="total" hidden></div>
+      <div class="block-head">
+        <h2>Мои счета</h2>
+      </div>
+      <div id="accounts-list"></div>
+      <button class="acc-add" id="open-new-account">+ Новый счёт</button>
+    </aside>
+
+    <main class="account-view" id="account-view">
+      <div class="empty" id="no-accounts" hidden>
+        <img src="logo.svg" alt="" width="56" height="56">
+        <h3>Счетов пока нет</h3>
+        <p class="muted">Откройте счёт в рублях, долларах или евро, чтобы пополнять его и делать переводы</p>
+        <button class="btn btn-primary" id="first-account">Открыть первый счёт</button>
+      </div>
+
+      <div id="account-card" hidden>
+        <div class="balance-card">
+          <div class="balance-top">
+            <span class="muted">Счёт <b id="acc-number"></b></span>
+            <button class="link" id="copy-number" title="Скопировать номер счёта">скопировать номер</button>
+          </div>
+          <div class="balance" id="acc-balance"></div>
+          <div class="balance-actions">
+            <button class="btn btn-primary" id="btn-transfer">Перевести</button>
+            <button class="btn" id="btn-deposit">Пополнить</button>
+          </div>
+        </div>
+
+        <div class="block-head">
+          <h2>История операций</h2>
+        </div>
+        <div id="history"></div>
+        <button class="btn btn-ghost btn-wide" id="more" hidden>Показать ещё</button>
+      </div>
+    </main>
+  </div>
+
+  <!-- профиль -->
+  <div class="profile" id="profile" hidden>
+    <div class="profile-head">
+      <button class="link" id="back-to-accounts">← К счетам</button>
+      <h2 id="profile-title">Профиль</h2>
+      <span></span>
+    </div>
+
+    <div class="profile-grid">
+      <div class="col">
+        <form class="card" id="profile-form" novalidate>
+          <h3>Личные данные</h3>
+          <div class="row2">
+            <label>Фамилия <input name="last_name"></label>
+            <label>Имя <input name="first_name"></label>
+          </div>
+          <label>Отчество <input name="middle_name"></label>
+          <div class="row2">
+            <label>Дата рождения <input name="birth_date" type="date"></label>
+            <label>Телефон
+              <input name="phone" type="tel" placeholder="+7 999 123-45-67">
+            </label>
+          </div>
+          <p class="muted small">По телефону вам смогут переводить деньги, они придут на основной счёт.</p>
+          <p class="form-error"></p>
+          <button type="submit" class="btn btn-primary">Сохранить</button>
+        </form>
+
+        <form class="card" id="settings-form" novalidate>
+          <h3>Настройки счетов</h3>
+          <label>Основной счёт
+            <select name="main_account_id"></select>
+          </label>
+          <label>Суточный лимит переводов
+            <input name="daily_limit" inputmode="decimal" placeholder="например, 50 000">
+          </label>
+          <p class="muted small">Лимит действует на переводы другим людям, по каждой валюте отдельно. Переводы между своими счетами не ограничены. Чтобы снять лимит, очистите поле.</p>
+          <p class="form-error"></p>
+          <button type="submit" class="btn btn-primary">Сохранить</button>
+        </form>
+      </div>
+
+      <div class="col">
+        <div class="card">
+          <h3>Статистика</h3>
+          <div class="stats" id="stats"></div>
+        </div>
+
+        <div class="card">
+          <h3>Безопасность</h3>
+          <div class="sec-row">
+            <div>
+              <div>Email</div>
+              <div class="muted small" id="sec-email"></div>
+            </div>
+            <button class="btn btn-small" id="btn-email">Изменить</button>
+          </div>
+          <div class="sec-row">
+            <div>
+              <div>Пароль</div>
+              <div class="muted small">После смены вы выйдете на всех других устройствах</div>
+            </div>
+            <button class="btn btn-small" id="btn-password">Изменить</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>История входов</h3>
+          <div id="logins"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- модалки -->
+<div class="overlay" id="overlay" hidden>
+
+  <form class="modal" id="transfer-form" hidden novalidate>
+    <h3>Перевод</h3>
+    <label>Со счёта
+      <select name="from" id="transfer-from"></select>
+    </label>
+    <div class="tabs tabs-small">
+      <button type="button" class="tab active" data-by="account">По номеру счёта</button>
+      <button type="button" class="tab" data-by="phone">По телефону</button>
+    </div>
+    <label id="to-label">Номер счёта получателя
+      <input name="to" inputmode="numeric" placeholder="10 цифр" maxlength="18" autocomplete="off" required>
+    </label>
+    <p class="recipient" id="recipient"></p>
+    <label>Сумма
+      <input name="amount" inputmode="decimal" placeholder="0,00" required>
+    </label>
+    <p class="form-error"></p>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-ghost" data-close>Отмена</button>
+      <button type="submit" class="btn btn-primary">Перевести</button>
+    </div>
+  </form>
+
+  <form class="modal" id="deposit-form" hidden novalidate>
+    <h3>Пополнение</h3>
+    <p class="muted small">Тестовое пополнение, в реальном сервисе здесь была бы оплата картой.</p>
+    <label>Сумма
+      <input name="amount" inputmode="decimal" placeholder="0,00" required>
+    </label>
+    <div class="quick">
+      <button type="button" class="chip" data-sum="500">500</button>
+      <button type="button" class="chip" data-sum="1000">1 000</button>
+      <button type="button" class="chip" data-sum="5000">5 000</button>
+    </div>
+    <p class="form-error"></p>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-ghost" data-close>Отмена</button>
+      <button type="submit" class="btn btn-primary">Пополнить</button>
+    </div>
+  </form>
+
+  <form class="modal" id="account-form" hidden novalidate>
+    <h3>Новый счёт</h3>
+    <label>Валюта
+      <select name="currency">
+        <option value="RUB">Рубль, ₽</option>
+        <option value="USD">Доллар, $</option>
+        <option value="EUR">Евро, €</option>
+      </select>
+    </label>
+    <p class="form-error"></p>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-ghost" data-close>Отмена</button>
+      <button type="submit" class="btn btn-primary">Открыть</button>
+    </div>
+  </form>
+
+  <form class="modal op-modal" id="op-modal" hidden novalidate>
+    <div class="op-head">
+      <div class="op-icon" id="op-icon"></div>
+      <div>
+        <div class="op-title" id="op-title"></div>
+        <div class="muted small" id="op-when"></div>
+      </div>
+    </div>
+    <div class="op-big" id="op-amount"></div>
+    <div class="details" id="op-details"></div>
+    <p class="form-error"></p>
+    <div class="modal-actions">
+      <button type="button" class="btn" id="op-repeat" hidden>Повторить перевод</button>
+      <button type="button" class="btn btn-primary" data-close>Закрыть</button>
+    </div>
+  </form>
+
+  <form class="modal" id="password-form" hidden novalidate>
+    <h3>Смена пароля</h3>
+    <label>Текущий пароль
+      <input name="current" type="password" autocomplete="current-password">
+    </label>
+    <label>Новый пароль
+      <input name="new1" type="password" autocomplete="new-password">
+      <small class="muted">Минимум 8 символов</small>
+    </label>
+    <label>Новый пароль ещё раз
+      <input name="new2" type="password" autocomplete="new-password">
+    </label>
+    <p class="muted small">На всех других устройствах будет выполнен выход.</p>
+    <p class="form-error"></p>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-ghost" data-close>Отмена</button>
+      <button type="submit" class="btn btn-primary">Сменить пароль</button>
+    </div>
+  </form>
+
+  <form class="modal" id="email-form" hidden novalidate>
+    <h3>Смена email</h3>
+    <label>Новый email
+      <input name="email" type="email" autocomplete="email">
+    </label>
+    <label>Пароль для подтверждения
+      <input name="password" type="password" autocomplete="current-password">
+    </label>
+    <p class="form-error"></p>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-ghost" data-close>Отмена</button>
+      <button type="submit" class="btn btn-primary">Сохранить</button>
+    </div>
+  </form>
+</div>
+
+<div class="toast" id="toast" hidden></div>
+
+<script src="app.js"></script>
+</body>
+</html>
